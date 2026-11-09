@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Caminhando pelo Circuito</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>⚡ Caminhando pelo Circuito</h1>
+      <div class="hud">
+        <div class="hud-item"><span>Potencial</span><strong id="hud-pot">–</strong></div>
+        <div class="hud-item"><span>Componentes</span><strong id="hud-visited">0/10</strong></div>
+        <div class="hud-item"><span>Passos</span><strong id="hud-steps">0</strong></div>
+        <div class="hud-item"><span>Malhas fechadas</span><strong id="hud-loops">0</strong></div>
+      </div>
+    </header>
+
+    <svg id="circuit" viewBox="-40 0 1000 420" role="img"
+         aria-label="Circuito com três malhas, oito resistores e duas fontes"></svg>
+
+    <section id="panel" aria-live="polite"></section>
+
+    <footer>
+      Você é uma carga positiva seguindo o sentido convencional. Use os botões ou as setas do teclado
+      para escolher o caminho em cada quina; <kbd>Enter</kbd> continua.
+    </footer>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
