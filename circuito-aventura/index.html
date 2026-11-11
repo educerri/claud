@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Circuito Aventura</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>⚡ Circuito <span>Aventura</span></h1>
+
+  <div id="game">
+    <div id="hud">
+      <div id="lives" aria-label="Vidas"></div>
+      <div id="progress">Resistores: 0/4</div>
+      <div id="timer">⏱ 0:00</div>
+    </div>
+
+    <div id="stage">
+      <canvas id="cv" width="800" height="520"></canvas>
+
+      <!-- Tela inicial -->
+      <div class="overlay show" id="startScreen">
+        <div class="card">
+          <h2>Bem-vindo ao circuito!</h2>
+          <p>Você é o <b>Elétron Zé</b>. Saia da fonte <b>V1</b> e percorra os fios do circuito.</p>
+          <p>Nos <b>nós</b>, decida se segue reto ou vira. Ao chegar em um <b>resistor</b>, calcule a corrente que passa por ele.</p>
+          <p>Você tem <b>3 vidas</b> ❤️❤️❤️ — cada erro custa uma.</p>
+          <p class="small">Mover: setas ou W A S D &nbsp;•&nbsp; Responder: clique ou teclas 1, 2, 3</p>
+          <button class="btn" id="startBtn">Começar</button>
+        </div>
+      </div>
+
+      <!-- Popup de pergunta -->
+      <div class="overlay" id="quiz">
+        <div class="card" id="quizCard">
+          <h2 id="qTitle"></h2>
+          <p id="qText"></p>
+          <div class="data" id="qData"></div>
+          <div class="formula" id="qFormula"></div>
+          <div class="options" id="qOptions"></div>
+          <div id="feedback"></div>
+          <button class="btn" id="continueBtn" style="display:none">Continuar ▶</button>
+        </div>
+      </div>
+
+      <!-- Fim de jogo -->
+      <div class="overlay" id="endScreen">
+        <div class="card">
+          <p class="big" id="endIcon"></p>
+          <h2 id="endTitle"></h2>
+          <p id="endText"></p>
+          <p class="small" id="endExtra"></p>
+          <button class="btn" id="restartBtn">Jogar de novo</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="pad">
+      <button data-d="up" aria-label="Cima">▲</button>
+      <button data-d="left" aria-label="Esquerda">◀</button>
+      <button data-d="down" aria-label="Baixo">▼</button>
+      <button data-d="right" aria-label="Direita">▶</button>
+    </div>
+    <p class="help">Resolva os 4 resistores para vencer. Resistores já resolvidos ficam verdes e mostram a corrente.</p>
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
