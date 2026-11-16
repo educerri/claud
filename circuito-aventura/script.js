@@ -69,10 +69,10 @@
   }
 
   function updateHud() {
-    $('lives').innerHTML = [0, 1, 2].map(i => `<span class="${i < lives ? '' : 'lost'}">❤️</span>`).join('');
+    $('lives').textContent = 'Vidas: ' + lives;
     $('progress').textContent = `Resistores: ${resistors.filter(r => r.solved).length}/4`;
     const s = Math.floor(elapsed);
-    $('timer').textContent = `⏱ ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    $('timer').textContent = `Tempo: ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   }
 
   // ---------- Movimento preso aos fios ----------
@@ -183,7 +183,7 @@
 
   function endGame(win) {
     state = 'over';
-    $('endIcon').textContent = win ? '🏆' : '💥';
+    $('endIcon').textContent = '';
     $('endTitle').textContent = win ? 'Circuito concluído!' : 'Curto-circuito!';
     $('endText').innerHTML = win
       ? `Você resolveu os 4 resistores em <b>${Math.floor(elapsed)} s</b> com <b>${lives}</b> vida(s) restante(s).`
@@ -195,123 +195,70 @@
   }
 
   // ---------- Desenho ----------
-  function drawWires() {
-    ctx.lineCap = 'round';
-    for (const pass of [{ w: 12, c: 'rgba(224,178,82,.13)' }, { w: 5, c: '#e0b252' }]) {
-      ctx.lineWidth = pass.w; ctx.strokeStyle = pass.c;
-      ctx.beginPath();
-      for (const s of segments) {
-        if (s.o === 'h') { ctx.moveTo(s.a, s.y); ctx.lineTo(s.b, s.y); }
-        else { ctx.moveTo(s.x, s.a); ctx.lineTo(s.x, s.b); }
-      }
-      ctx.stroke();
-    }
-  }
-
-  function label(text, x, y, color = '#e8f5ee', size = 15, align = 'center') {
-    ctx.font = `bold ${size}px "Trebuchet MS", sans-serif`;
+  function label(text, x, y, color = 'black', size = 14, align = 'center') {
+    ctx.font = size + 'px Times New Roman';
     ctx.textAlign = align; ctx.textBaseline = 'middle';
     ctx.fillStyle = color; ctx.fillText(text, x, y);
   }
 
-  function drawResistor(r, t) {
-    const len = 64, amp = 11;
-    const color = r.solved ? '#4de3a0' : '#ffb347';
-    ctx.save();
-    ctx.translate(r.x, r.y);
-    if (r.o === 'v') ctx.rotate(Math.PI / 2);
-    // apaga o fio por baixo
-    ctx.fillStyle = '#0d2119'; ctx.fillRect(-len / 2, -amp - 6, len, amp * 2 + 12);
-    // brilho pulsante quando pendente
-    if (!r.solved) {
-      ctx.fillStyle = `rgba(255,179,71,${0.10 + 0.10 * Math.sin(t * 4)})`;
-      ctx.beginPath(); ctx.roundRect(-len / 2 - 4, -amp - 10, len + 8, amp * 2 + 20, 10); ctx.fill();
+  function drawWires() {
+    ctx.lineWidth = 2; ctx.strokeStyle = 'black';
+    ctx.beginPath();
+    for (const s of segments) {
+      if (s.o === 'h') { ctx.moveTo(s.a, s.y); ctx.lineTo(s.b, s.y); }
+      else { ctx.moveTo(s.x, s.a); ctx.lineTo(s.x, s.b); }
     }
-    // zigue-zague
-    ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-len / 2, 0);
-    const n = 6, step = len / n;
-    for (let i = 0; i < n; i++) ctx.lineTo(-len / 2 + step * (i + 0.5), i % 2 ? amp : -amp);
-    ctx.lineTo(len / 2, 0); ctx.stroke();
-    ctx.restore();
+    ctx.stroke();
+  }
 
-    const txt = `${r.name} = ${r.ohms} Ω`;
-    const cur = r.solved ? `I = ${fmt(r.answer)} A` : 'I = ?';
+  function drawResistor(r) {
+    // retangulo mesmo, zigue-zague da muito trabalho
+    const w = r.o === 'h' ? 60 : 22, h = r.o === 'h' ? 22 : 60;
+    ctx.fillStyle = r.solved ? 'lime' : 'orange';
+    ctx.fillRect(r.x - w / 2, r.y - h / 2, w, h);
+    ctx.lineWidth = 2; ctx.strokeStyle = 'black';
+    ctx.strokeRect(r.x - w / 2, r.y - h / 2, w, h);
+
+    const txt = r.name + ' = ' + r.ohms + ' ohm';
+    const cur = r.solved ? 'I = ' + fmt(r.answer) + ' A' : 'I = ?';
     if (r.o === 'h') {
       const up = r.y === T ? -1 : 1;
-      label(txt, r.x, r.y + up * 32);
-      label(cur, r.x, r.y + up * 52, color, 14);
+      label(txt, r.x, r.y + up * 24);
+      label(cur, r.x, r.y + up * 40, 'red');
     } else {
-      const side = r.x === R ? 1 : 1;
-      label(txt, r.x + side * 26, r.y - 10, '#e8f5ee', 15, 'left');
-      label(cur, r.x + side * 26, r.y + 10, color, 14, 'left');
+      label(txt, r.x + 16, r.y - 8, 'black', 14, 'left');
+      label(cur, r.x + 16, r.y + 8, 'red', 14, 'left');
     }
   }
 
   function drawSource(s) {
-    ctx.fillStyle = '#0d2119'; ctx.strokeStyle = '#6fc3ff'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.arc(s.x, s.y, 24, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    label('+', s.x, s.y - 10, '#ff8a8a', 18);
-    label('−', s.x, s.y + 10, '#8ab8ff', 20);
+    ctx.fillStyle = 'white'; ctx.strokeStyle = 'black'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(s.x, s.y, 20, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    label('+', s.x, s.y - 8);
+    label('-', s.x, s.y + 8);
     const align = s.labelSide < 0 ? 'right' : 'left';
-    label(s.name, s.x + s.labelSide * 34, s.y - 10, '#6fc3ff', 15, align);
-    label(`${s.value} V`, s.x + s.labelSide * 34, s.y + 10, '#e8f5ee', 15, align);
+    label(s.name + ' = ' + s.value + 'V', s.x + s.labelSide * 26, s.y, 'blue', 14, align);
   }
 
   function drawNode(n) {
-    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#e0b252'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.arc(n.x, n.y, 8, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    label(`Nó ${n.name}`, n.x, n.y + n.ly, '#8fb3a2', 14);
+    ctx.fillStyle = 'black';
+    ctx.beginPath(); ctx.arc(n.x, n.y, 5, 0, Math.PI * 2); ctx.fill();
+    label('No ' + n.name, n.x + 22, n.y + (n.ly < 0 ? -12 : 14));
   }
 
-  function drawPlayer(t) {
-    const { x, y } = player;
-    const bob = Math.sin(player.step) * 1.5;
-    // halo
-    const g = ctx.createRadialGradient(x, y, 4, x, y, 30);
-    g.addColorStop(0, 'rgba(120,220,255,.55)'); g.addColorStop(1, 'rgba(120,220,255,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI * 2); ctx.fill();
-    // corpo
-    ctx.fillStyle = '#5fd0ff'; ctx.strokeStyle = '#0b3550'; ctx.lineWidth = 2.5;
-    ctx.beginPath(); ctx.arc(x, y + bob, 14, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    // olhos olhando na direção do movimento
-    const [dx, dy] = DIRS[player.dir];
-    for (const ex of [-5, 5]) {
-      ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(x + ex + dx * 2, y + bob - 2 + dy * 2, 4, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#0b3550';
-      ctx.beginPath(); ctx.arc(x + ex + dx * 3.5, y + bob - 2 + dy * 3.5, 2, 0, Math.PI * 2); ctx.fill();
-    }
-    // faísca orbitando
-    const a = t * 5;
-    ctx.fillStyle = '#fff59d';
-    ctx.beginPath(); ctx.arc(x + Math.cos(a) * 20, y + Math.sin(a) * 20, 3, 0, Math.PI * 2); ctx.fill();
+  function drawPlayer() {
+    ctx.fillStyle = 'blue';
+    ctx.fillRect(player.x - 10, player.y - 10, 20, 20);
   }
 
-  function draw(t) {
+  function draw() {
     ctx.clearRect(0, 0, cv.width, cv.height);
-    // grade de fundo estilo placa
-    ctx.fillStyle = 'rgba(77,227,160,.07)';
-    for (let gx = 20; gx < cv.width; gx += 30)
-      for (let gy = 20; gy < cv.height; gy += 30) ctx.fillRect(gx, gy, 2, 2);
-
-    label('RAMO 1', (L + M) / 2 - 20, 260, 'rgba(143,179,162,.35)', 20);
-    label('RAMO 2', M - 62, 330, 'rgba(143,179,162,.35)', 14);
-    label('RAMO 3', (M + R) / 2 + 20, 260, 'rgba(143,179,162,.35)', 20);
-
     drawWires();
-    resistors.forEach(r => drawResistor(r, t));
+    resistors.forEach(drawResistor);
     sources.forEach(drawSource);
     nodes.forEach(drawNode);
-    drawPlayer(t);
-
-    if (hint && state === 'play') {
-      ctx.font = 'bold 15px "Trebuchet MS", sans-serif';
-      const w = ctx.measureText(hint).width + 24;
-      ctx.fillStyle = 'rgba(16,38,29,.95)'; ctx.strokeStyle = '#4de3a0'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.roundRect(cv.width / 2 - w / 2, 470, w, 32, 10); ctx.fill(); ctx.stroke();
-      label(hint, cv.width / 2, 487, '#4de3a0', 15);
-    }
+    drawPlayer();
+    if (hint && state === 'play') label(hint, 10, 500, 'red', 16, 'left');
   }
 
   // ---------- Laço principal ----------
