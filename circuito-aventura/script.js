@@ -195,14 +195,16 @@
   }
 
   // ---------- Desenho ----------
-  function label(text, x, y, color = 'black', size = 14, align = 'center') {
-    ctx.font = size + 'px Times New Roman';
+  const INK = '#374151', OK = '#16a34a', PENDING = '#d97706', MUTED = '#6b7280';
+
+  function label(text, x, y, color = INK, size = 14, align = 'center', weight = 600) {
+    ctx.font = `${weight} ${size}px system-ui, "Segoe UI", Arial, sans-serif`;
     ctx.textAlign = align; ctx.textBaseline = 'middle';
     ctx.fillStyle = color; ctx.fillText(text, x, y);
   }
 
   function drawWires() {
-    ctx.lineWidth = 2; ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3; ctx.strokeStyle = INK; ctx.lineCap = 'round';
     ctx.beginPath();
     for (const s of segments) {
       if (s.o === 'h') { ctx.moveTo(s.a, s.y); ctx.lineTo(s.b, s.y); }
@@ -212,43 +214,49 @@
   }
 
   function drawResistor(r) {
-    // retangulo mesmo, zigue-zague da muito trabalho
-    const w = r.o === 'h' ? 60 : 22, h = r.o === 'h' ? 22 : 60;
-    ctx.fillStyle = r.solved ? 'lime' : 'orange';
-    ctx.fillRect(r.x - w / 2, r.y - h / 2, w, h);
-    ctx.lineWidth = 2; ctx.strokeStyle = 'black';
-    ctx.strokeRect(r.x - w / 2, r.y - h / 2, w, h);
+    const len = 60, amp = 9, color = r.solved ? OK : PENDING;
+    ctx.save();
+    ctx.translate(r.x, r.y);
+    if (r.o === 'v') ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = '#fff'; ctx.fillRect(-len / 2, -amp - 3, len, amp * 2 + 6);
+    ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-len / 2, 0);
+    const n = 6, step = len / n;
+    for (let i = 0; i < n; i++) ctx.lineTo(-len / 2 + step * (i + 0.5), i % 2 ? amp : -amp);
+    ctx.lineTo(len / 2, 0); ctx.stroke();
+    ctx.restore();
 
-    const txt = r.name + ' = ' + r.ohms + ' ohm';
-    const cur = r.solved ? 'I = ' + fmt(r.answer) + ' A' : 'I = ?';
+    const txt = `${r.name} = ${r.ohms} Ω`;
+    const cur = r.solved ? `I = ${fmt(r.answer)} A` : 'I = ?';
     if (r.o === 'h') {
       const up = r.y === T ? -1 : 1;
-      label(txt, r.x, r.y + up * 24);
-      label(cur, r.x, r.y + up * 40, 'red');
+      label(txt, r.x, r.y + up * 28);
+      label(cur, r.x, r.y + up * 46, color, 13);
     } else {
-      label(txt, r.x + 16, r.y - 8, 'black', 14, 'left');
-      label(cur, r.x + 16, r.y + 8, 'red', 14, 'left');
+      label(txt, r.x + 22, r.y - 9, INK, 14, 'left');
+      label(cur, r.x + 22, r.y + 9, color, 13, 'left');
     }
   }
 
   function drawSource(s) {
-    ctx.fillStyle = 'white'; ctx.strokeStyle = 'black'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(s.x, s.y, 20, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-    label('+', s.x, s.y - 8);
-    label('-', s.x, s.y + 8);
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = INK; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(s.x, s.y, 22, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    label('+', s.x, s.y - 9, INK, 16);
+    label('−', s.x, s.y + 9, INK, 16);
     const align = s.labelSide < 0 ? 'right' : 'left';
-    label(s.name + ' = ' + s.value + 'V', s.x + s.labelSide * 26, s.y, 'blue', 14, align);
+    label(s.name, s.x + s.labelSide * 32, s.y - 9, INK, 14, align);
+    label(`${s.value} V`, s.x + s.labelSide * 32, s.y + 9, MUTED, 13, align);
   }
 
   function drawNode(n) {
-    ctx.fillStyle = 'black';
-    ctx.beginPath(); ctx.arc(n.x, n.y, 5, 0, Math.PI * 2); ctx.fill();
-    label('No ' + n.name, n.x + 22, n.y + (n.ly < 0 ? -12 : 14));
+    ctx.fillStyle = INK;
+    ctx.beginPath(); ctx.arc(n.x, n.y, 6, 0, Math.PI * 2); ctx.fill();
+    label(`Nó ${n.name}`, n.x, n.y + (n.ly < 0 ? -20 : 22), MUTED, 13);
   }
 
   function drawPlayer() {
-    ctx.fillStyle = 'blue';
-    ctx.fillRect(player.x - 10, player.y - 10, 20, 20);
+    ctx.fillStyle = '#2563eb'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(player.x, player.y, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
   }
 
   function draw() {
@@ -258,7 +266,7 @@
     sources.forEach(drawSource);
     nodes.forEach(drawNode);
     drawPlayer();
-    if (hint && state === 'play') label(hint, 10, 500, 'red', 16, 'left');
+    if (hint && state === 'play') label(hint, cv.width / 2, 480, '#2563eb', 15);
   }
 
   // ---------- Laço principal ----------
